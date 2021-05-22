@@ -1,0 +1,7 @@
+---
+  - name: Installation and configuration of jboss server
+    hosts: testserver
+    gather_facts: false
+    become: yes
+    roles:
+      - wildfly-11.0.0.Final_installation 

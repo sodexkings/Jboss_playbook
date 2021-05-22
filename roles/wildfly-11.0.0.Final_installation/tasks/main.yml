@@ -1,0 +1,72 @@
+---
+  - name: install java
+    yum:
+      name: java
+      state: latest
+
+
+  - name: extracting wildfly-11.0.0.Final.tar.gz  Package
+    unarchive:
+      src: https://download.jboss.org/wildfly/11.0.0.Final/wildfly-11.0.0.Final.tar.gz
+      dest: /opt
+      remote_src: yes
+
+  - name: create an environment variable for JAVA
+    blockinfile:
+      path: ~/.bashrc 
+      block: |
+        export JAVA_HOME=/usr/lib/jvm/jre
+        export PATH=$PATH:$JAVA_HOME/bin
+      backup: no 
+
+  - name: run source .bashrc implement environment variable change .bashrc changes
+    shell: source ~/.bashrc
+
+  - name: Making changes to standalone.xml network access
+    replace:
+      path: /opt/wildfly-11.0.0.Final/standalone/configuration/standalone.xml
+      regexp: '127.0.0.1'
+      replace: "0.0.0.0"
+      backup: yes
+
+  - name: create directory for console log when jboss starts
+    file:
+      path: /opt/wildfly-11.0.0.Final/logs
+      state: directory
+      mode: '0755'
+
+    copy:
+      src: roles/wildfly-11.0.0.Final_installation/files/startjboss.sh
+      dest: /opt/wildfly-11.0.0.Final/bin/
+      mode: ug+x
+
+  - name: create script to stop Jboss EAP and make it executable
+    copy:
+      src: roles/wildfly-11.0.0.Final_installation/files/stopjboss.sh
+      dest: /opt/wildfly-11.0.0.Final/bin
+      mode: ug+x
+
+  - name: create jboss.service on systemd
+    copy:
+      src: roles/wildfly-11.0.0.Final_installation/files/jboss.service
+      dest: /usr/lib/systemd/system
+
+  - name: reload systemd
+    command: "systemctl daemon-reload"
+
+  - name: enable  jboss.service
+    service:
+      name: jboss
+      enabled: yes
+       
+  - name: start jboss.service
+    service:
+      name: jboss
+      state: started
+
+
+
+
+
+
+        		
